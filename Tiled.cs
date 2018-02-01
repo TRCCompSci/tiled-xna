@@ -356,6 +356,45 @@ namespace Squared.Tiled {
             int index = (y * Width) + x;
             return Tiles[index];
         }
+      
+        public Texture2D GetTileTexture(int tileNo, Tileset tileset, Texture2D tile)
+        {
+            Texture2D tilesheet = tileset.Texture;
+            Color[] TileTextureData = new Color[tilesheet.Width * tilesheet.Height];
+
+            int row= (tileNo - 1) % tileset.TileWidth;
+            int col = (tileNo - 1) / tileset.TileWidth;
+            int tileWidth = tilesheet.Width / tileset.TileWidth;
+            int tileHeight = tilesheet.Height / tileset.TileHeight;
+            
+            Rectangle tilehit = new Rectangle(row * tileWidth, col * tileHeight, tileWidth, tileHeight);
+            
+            tilesheet.GetData(TileTextureData);
+
+            Color[] test = new Color[16 * 16];
+
+            int count = 0;
+            for (int c = tilehit.Top; c < tilehit.Bottom; c++)
+            {
+                for (int r = tilehit.Left; r < tilehit.Right; r++)
+                {
+                    Color colorA = TileTextureData[r + (c * tilesheet.Width)];
+                    test[count] = colorA;
+                    count++;
+                }
+            }
+
+            tile.SetData(test);
+
+            return tile;
+        }
+
+        public Color[] GetTextureData(Texture2D tile)
+        {
+            Color[] data = new Color[tile.Width*tile.Height];
+            tile.GetData(data);
+            return data;
+        }
 
         protected void BuildTileInfoCache(IList<Tileset> tilesets)
         {
