@@ -1,4 +1,4 @@
-﻿/*
+/*
 Squared.Tiled
 Copyright (C) 2009 Kevin Gadd
 
@@ -62,6 +62,7 @@ using System.IO.Compression;
 using System.Globalization;
 
 namespace Squared.Tiled {
+    [Serializable]
     public class Tileset {
         public class TilePropertyList : Dictionary<string, string> {
         }
@@ -166,6 +167,7 @@ namespace Squared.Tiled {
         }
     }
 
+    [Serializable]
     public class Layer
     {
         /*
@@ -180,7 +182,7 @@ namespace Squared.Tiled {
         internal const byte DiagonallyFlipDrawFlag = 4;
 
         public SortedList<string, string> Properties = new SortedList<string, string>();
-        internal struct TileInfo
+        public struct TileInfo
         {
             public Texture2D Texture;
             public Rectangle Rectangle;
@@ -191,7 +193,7 @@ namespace Squared.Tiled {
         public float Opacity = 1;
         public int[] Tiles;
         public byte[] FlipAndRotate;
-        internal TileInfo[] _TileInfoCache = null;
+        public TileInfo[] _TileInfoCache = null;
 
         internal static Layer Load(XmlReader reader)
         {
@@ -356,7 +358,7 @@ namespace Squared.Tiled {
             int index = (y * Width) + x;
             return Tiles[index];
         }
-      
+
         public Texture2D GetTileTexture(int tileNo, Tileset tileset, Texture2D tile)
         {
             Texture2D tilesheet = tileset.Texture;
@@ -417,6 +419,7 @@ namespace Squared.Tiled {
                 }
             }
 
+            _TileInfoCache = new TileInfo[cache.Count];
             _TileInfoCache = cache.ToArray();
         }
 
@@ -518,6 +521,7 @@ namespace Squared.Tiled {
         }
     }
 
+    [Serializable]
     public class ObjectGroup
     {
         public SortedList<string, Object> Objects = new SortedList<string, Object>();
@@ -621,7 +625,7 @@ namespace Squared.Tiled {
             }
         }
     }
-
+    [Serializable]
     public class Object
     {
         public SortedList<string, string> Properties = new SortedList<string, string>();
@@ -735,12 +739,16 @@ namespace Squared.Tiled {
         }
     }
 
+    [Serializable]
     public class Map
     {
         public SortedList<string, Tileset> Tilesets = new SortedList<string, Tileset>();
         public SortedList<string, Layer> Layers = new SortedList<string, Layer>();
         public SortedList<string, ObjectGroup> ObjectGroups = new SortedList<string, ObjectGroup>();
         public SortedList<string, string> Properties = new SortedList<string, string>();
+        //added the combined list to store a list of all objectgroups and layers
+        //this is so that they can be drawn all in the correct order within the layers.
+        public SortedList<string, bool> Combined;
         public int Width, Height;
         public int TileWidth, TileHeight;
 
@@ -836,12 +844,14 @@ namespace Squared.Tiled {
                         }
                     }
 
+
             foreach (var tileset in result.Tilesets.Values)
             {
                 tileset.Texture = content.Load<Texture2D>(
                     Path.Combine(Path.GetDirectoryName(tileset.Image), Path.GetFileNameWithoutExtension(tileset.Image))
                 );
             }
+
 
             foreach (var objects in result.ObjectGroups.Values)
             {
@@ -864,16 +874,42 @@ namespace Squared.Tiled {
             return result;
         }
 
-        public void Draw (SpriteBatch batch, Rectangle rectangle, Vector2 viewportPosition) {
+        //new method to generate the list of all layers and objectgroups to draw
+        private SortedList<string,bool> CombinedList()
+        {
+            SortedList<string, bool> temp = new SortedList<string, bool>();
+
+            //bool of true denotes a layer
             foreach (Layer layers in Layers.Values)
             {
-                layers.Draw(batch, Tilesets.Values, rectangle, viewportPosition, TileWidth, TileHeight);
+               temp.Add(layers.Name,true);
             }
 
+            //bool of false denotes an object group
             foreach (var objectgroups in ObjectGroups.Values)
             {
-                objectgroups.Draw(this, batch, rectangle, viewportPosition);
+                temp.Add(objectgroups.Name, false);
+            }
+            Console.WriteLine("Combined List Created");
+            return temp;
+        }
+
+        public void Draw (SpriteBatch batch, Rectangle rectangle, Vector2 viewportPosition) {
+
+            //check if combined list is created if not create it.
+            if (Combined == null)
+                Combined = CombinedList();
+
+            //cycle through each item in combined list
+            //if the value is true its a layer, false its an object group
+            //the key should be the name of the layer or object group
+            foreach (var layer in Combined)
+            {
+                if (layer.Value == true)
+                    Layers[layer.Key].Draw(batch, Tilesets.Values, rectangle, viewportPosition, TileWidth, TileHeight);
+                else
+                    ObjectGroups[layer.Key].Draw(this, batch, rectangle, viewportPosition);
+                }
             }
         }
     }
-}
