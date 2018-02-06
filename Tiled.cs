@@ -62,7 +62,6 @@ using System.IO.Compression;
 using System.Globalization;
 
 namespace Squared.Tiled {
-    [Serializable]
     public class Tileset {
         public class TilePropertyList : Dictionary<string, string> {
         }
@@ -167,7 +166,6 @@ namespace Squared.Tiled {
         }
     }
 
-    [Serializable]
     public class Layer
     {
         /*
@@ -193,7 +191,7 @@ namespace Squared.Tiled {
         public float Opacity = 1;
         public int[] Tiles;
         public byte[] FlipAndRotate;
-        public TileInfo[] _TileInfoCache = null;
+        private TileInfo[] _TileInfoCache = null;
 
         internal static Layer Load(XmlReader reader)
         {
@@ -521,7 +519,6 @@ namespace Squared.Tiled {
         }
     }
 
-    [Serializable]
     public class ObjectGroup
     {
         public SortedList<string, Object> Objects = new SortedList<string, Object>();
@@ -625,7 +622,7 @@ namespace Squared.Tiled {
             }
         }
     }
-    [Serializable]
+
     public class Object
     {
         public SortedList<string, string> Properties = new SortedList<string, string>();
@@ -739,7 +736,6 @@ namespace Squared.Tiled {
         }
     }
 
-    [Serializable]
     public class Map
     {
         public SortedList<string, Tileset> Tilesets = new SortedList<string, Tileset>();
