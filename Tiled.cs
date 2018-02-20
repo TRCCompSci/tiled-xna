@@ -364,14 +364,14 @@ namespace Squared.Tiled {
 
             int row= (tileNo - 1) % tileset.TileWidth;
             int col = (tileNo - 1) / tileset.TileWidth;
-            int tileWidth = tilesheet.Width / tileset.TileWidth;
-            int tileHeight = tilesheet.Height / tileset.TileHeight;
+            int tileWidth = tile.Width;
+            int tileHeight = tile.Height;
             
             Rectangle tilehit = new Rectangle(row * tileWidth, col * tileHeight, tileWidth, tileHeight);
             
             tilesheet.GetData(TileTextureData);
 
-            Color[] test = new Color[16 * 16];
+            Color[] test = new Color[tileWidth* tileHeight];
 
             int count = 0;
             for (int c = tilehit.Top; c < tilehit.Bottom; c++)
