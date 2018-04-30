@@ -70,9 +70,44 @@ using System.IO;
 using System.IO.Compression;
 using System.Globalization;
 
-namespace Squared.Tiled {
-    public class Tileset {
-        public class TilePropertyList : Dictionary<string, string> {
+namespace Squared.Tiled
+{
+    public class Isometric
+    {
+        public static Vector2 TwoDToIso(Vector2 pt)
+        {
+            Vector2 tempPt = new Vector2(0, 0);
+            tempPt.X = pt.X - pt.Y;
+            tempPt.Y = (pt.X + pt.Y) / 2;
+            return (tempPt);
+        }
+
+        /**
+         * convert a 2d point to specific tile row/column
+         * */
+        public static Vector2 GetTileCoordinates(Vector2 pt, int tileHeight)
+        {
+            Vector2 tempPt = new Vector2(0, 0);
+            tempPt.X = (int)Math.Floor(pt.X / tileHeight);
+            tempPt.Y = (int)Math.Floor(pt.Y / tileHeight);
+            return (tempPt);
+        }
+
+        /**
+         * convert specific tile row/column to 2d point
+         * */
+        public static Vector2 Get2dFromTileCoordinates(Vector2 pt, int tileHeight)
+        {
+            Vector2 tempPt = new Vector2(0, 0);
+            tempPt.X = pt.X * tileHeight;
+            tempPt.Y = pt.Y * tileHeight;
+            return (tempPt);
+        }
+    }
+    public class Tileset
+    {
+        public class TilePropertyList : Dictionary<string, string>
+        {
         }
 
         public string Name;
@@ -86,7 +121,8 @@ namespace Squared.Tiled {
         protected Texture2D _Texture;
         protected int _TexWidth, _TexHeight;
 
-        internal static Tileset Load (XmlReader reader) {
+        internal static Tileset Load(XmlReader reader)
+        {
             var result = new Tileset();
 
             result.Name = reader.GetAttribute("name");
@@ -98,27 +134,33 @@ namespace Squared.Tiled {
 
             int currentTileId = -1;
 
-            while (reader.Read()) {
+            while (reader.Read())
+            {
                 var name = reader.Name;
 
-                switch (reader.NodeType) {
+                switch (reader.NodeType)
+                {
                     case XmlNodeType.Element:
-                        switch (name) {
+                        switch (name)
+                        {
                             case "image":
                                 result.Image = reader.GetAttribute("source");
-                            break;
+                                break;
                             case "tile":
                                 currentTileId = int.Parse(reader.GetAttribute("id"));
-                            break;
-                            case "property": {
-                                TilePropertyList props;
-                                if (!result.TileProperties.TryGetValue(currentTileId, out props)) {
-                                    props = new TilePropertyList();
-                                    result.TileProperties[currentTileId] = props;
-                                }
+                                break;
+                            case "property":
+                                {
+                                    TilePropertyList props;
+                                    if (!result.TileProperties.TryGetValue(currentTileId, out props))
+                                    {
+                                        props = new TilePropertyList();
+                                        result.TileProperties[currentTileId] = props;
+                                    }
 
-                                props[reader.GetAttribute("name")] = reader.GetAttribute("value");
-                            } break;
+                                    props[reader.GetAttribute("name")] = reader.GetAttribute("value");
+                                }
+                                break;
                         }
 
                         break;
@@ -130,7 +172,8 @@ namespace Squared.Tiled {
             return result;
         }
 
-        public TilePropertyList GetTileProperties (int index) {
+        public TilePropertyList GetTileProperties(int index)
+        {
             index -= FirstTileID;
 
             if (index < 0)
@@ -142,18 +185,22 @@ namespace Squared.Tiled {
             return result;
         }
 
-        public Texture2D Texture {
-            get {
+        public Texture2D Texture
+        {
+            get
+            {
                 return _Texture;
             }
-            set {
+            set
+            {
                 _Texture = value;
                 _TexWidth = value.Width;
                 _TexHeight = value.Height;
             }
         }
 
-        internal bool MapTileToRect (int index, ref Rectangle rect) {
+        internal bool MapTileToRect(int index, ref Rectangle rect)
+        {
             index -= FirstTileID;
 
             if (index < 0)
@@ -219,9 +266,9 @@ namespace Squared.Tiled {
             if (reader.GetAttribute("height") != null)
             {
                 result.Height = int.Parse(reader.GetAttribute("height"));
-            }    
+            }
             if (reader.GetAttribute("opacity") != null)
-            {                
+            {
                 result.Opacity = float.Parse(reader.GetAttribute("opacity"), NumberStyles.Any, ci);
             }
             result.Tiles = new int[result.Width * result.Height];
@@ -257,18 +304,22 @@ namespace Squared.Tiled {
                                                     using (stream)
                                                     using (var br = new BinaryReader(stream))
                                                     {
-                                                        for ( int i = 0; i < result.Tiles.Length; i++ ) {
+                                                        for (int i = 0; i < result.Tiles.Length; i++)
+                                                        {
                                                             uint tileData = br.ReadUInt32();
 
                                                             // The data contain flip information as well as the tileset index
                                                             byte flipAndRotateFlags = 0;
-                                                            if ( (tileData & FlippedHorizontallyFlag) != 0 ) {
+                                                            if ((tileData & FlippedHorizontallyFlag) != 0)
+                                                            {
                                                                 flipAndRotateFlags |= HorizontalFlipDrawFlag;
                                                             }
-                                                            if ( (tileData & FlippedVerticallyFlag) != 0 ) {
+                                                            if ((tileData & FlippedVerticallyFlag) != 0)
+                                                            {
                                                                 flipAndRotateFlags |= VerticalFlipDrawFlag;
                                                             }
-                                                            if ( (tileData & FlippedDiagonallyFlag) != 0 ) {
+                                                            if ((tileData & FlippedDiagonallyFlag) != 0)
+                                                            {
                                                                 flipAndRotateFlags |= DiagonallyFlipDrawFlag;
                                                             }
                                                             result.FlipAndRotate[i] = flipAndRotateFlags;
@@ -277,7 +328,7 @@ namespace Squared.Tiled {
                                                             tileData &= ~(FlippedHorizontallyFlag |
                                                                           FlippedVerticallyFlag |
                                                                           FlippedDiagonallyFlag);
-                                                            result.Tiles[i] = (int) tileData;
+                                                            result.Tiles[i] = (int)tileData;
                                                         }
                                                     }
 
@@ -300,7 +351,7 @@ namespace Squared.Tiled {
                                                     case XmlNodeType.Element:
                                                         if (st.Name == "tile")
                                                         {
-                                                            if(i < result.Tiles.Length)
+                                                            if (i < result.Tiles.Length)
                                                             {
                                                                 result.Tiles[i] = int.Parse(st.GetAttribute("gid"));
                                                                 i++;
@@ -316,8 +367,9 @@ namespace Squared.Tiled {
                                             }
                                         }
                                     }
-                    Console.WriteLine("It made it!");
-                                } break;
+                                    Console.WriteLine("It made it!");
+                                }
+                                break;
                             case "properties":
                                 {
                                     using (var st = reader.ReadSubtree())
@@ -343,7 +395,8 @@ namespace Squared.Tiled {
                                             st.Read();
                                         }
                                     }
-                                } break;
+                                }
+                                break;
                         }
 
                         break;
@@ -371,16 +424,16 @@ namespace Squared.Tiled {
             Texture2D tilesheet = tileset.Texture;
             Color[] TileTextureData = new Color[tilesheet.Width * tilesheet.Height];
 
-            int row= (tileNo - 1) % tileset.TileWidth;
+            int row = (tileNo - 1) % tileset.TileWidth;
             int col = (tileNo - 1) / tileset.TileWidth;
             int tileWidth = tile.Width;
             int tileHeight = tile.Height;
-            
+
             Rectangle tilehit = new Rectangle(row * tileWidth, col * tileHeight, tileWidth, tileHeight);
-            
+
             tilesheet.GetData(TileTextureData);
 
-            Color[] test = new Color[tileWidth* tileHeight];
+            Color[] test = new Color[tileWidth * tileHeight];
 
             int count = 0;
             for (int c = tilehit.Top; c < tilehit.Bottom; c++)
@@ -400,7 +453,7 @@ namespace Squared.Tiled {
 
         public Color[] GetTextureData(Texture2D tile)
         {
-            Color[] data = new Color[tile.Width*tile.Height];
+            Color[] data = new Color[tile.Width * tile.Height];
             tile.GetData(data);
             return data;
         }
@@ -411,7 +464,7 @@ namespace Squared.Tiled {
             var cache = new List<TileInfo>();
             int i = 1;
 
-        next:
+            next:
             for (int t = 0; t < tilesets.Count; t++)
             {
                 if (tilesets[t].MapTileToRect(i, ref rect))
@@ -428,6 +481,57 @@ namespace Squared.Tiled {
 
             _TileInfoCache = new TileInfo[cache.Count];
             _TileInfoCache = cache.ToArray();
+        }
+
+        public void DrawIso(SpriteBatch batch, IList<Tileset> tilesets, Rectangle rectangle, Vector2 viewportPosition, int tileWidth, int tileHeight)
+        {
+            int i = 0;
+            Vector2 destPos = new Vector2(0, 0);
+
+            Vector2 centTile = new Vector2((int)viewportPosition.X / tileHeight, (int)viewportPosition.Y / tileHeight);
+
+            Console.WriteLine(centTile + " " + viewportPosition);
+
+            TileInfo info = new TileInfo();
+            if (_TileInfoCache == null)
+                BuildTileInfoCache(tilesets);
+
+            for (int y = (int)centTile.Y - (Height / 2); y <= (int)centTile.Y + (Height / 2); y++)
+            {
+                for (int x = (int)centTile.X - (Width / 2); x <= (int)centTile.X + (Width / 2); x++)
+                {
+
+                    destPos.X = (x - centTile.X) * tileHeight;
+                    destPos.Y = (y - centTile.Y) * tileHeight;
+                    destPos = Isometric.TwoDToIso(destPos);
+                    destPos.X += (rectangle.Width) / 2;
+                    destPos.Y += (rectangle.Height) / 2;
+
+                    if (destPos.X > (0 - tileWidth) && destPos.X < (rectangle.Width + tileWidth) && destPos.Y > (0 - tileWidth) && destPos.Y < (rectangle.Height + tileHeight))
+                    {
+
+                        Vector2 testtile = new Vector2(x, y);
+
+                        if (testtile.X >= 0 && testtile.X < Width && testtile.Y >= 0 && testtile.Y < Height)
+                        {
+
+                            i = ((int)testtile.Y * Width) + (int)testtile.X;
+
+                            int index = Tiles[i] - 1;
+
+                            if ((index >= 0) && (index < _TileInfoCache.Length))
+                            {
+                                info = _TileInfoCache[index];
+
+                                //batch.Draw(info.Texture, new Rectangle(ox, oy, this.Width, this.Height), info.Rectangle, Color.White * this.Opacity,0f);
+                                batch.Draw(info.Texture, destPos, info.Rectangle,
+                                           Color.White * this.Opacity, 0f, new Vector2(tileWidth / 2f, tileHeight / 2f),
+                                           1f, 0f, 0);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         public void Draw(SpriteBatch batch, IList<Tileset> tilesets, Rectangle rectangle, Vector2 viewportPosition, int tileWidth, int tileHeight)
@@ -488,25 +592,35 @@ namespace Squared.Tiled {
                     SpriteEffects flipEffect = SpriteEffects.None;
                     float rotation = 0f;
 
-                    if ( (flipAndRotate & Layer.HorizontalFlipDrawFlag) != 0 ) {
+                    if ((flipAndRotate & Layer.HorizontalFlipDrawFlag) != 0)
+                    {
                         flipEffect |= SpriteEffects.FlipHorizontally;
                     }
-                    if ( (flipAndRotate & Layer.VerticalFlipDrawFlag) != 0 ) {
+                    if ((flipAndRotate & Layer.VerticalFlipDrawFlag) != 0)
+                    {
                         flipEffect |= SpriteEffects.FlipVertically;
                     }
-                    if ( (flipAndRotate & Layer.DiagonallyFlipDrawFlag) != 0 ) {
-                        if ( (flipAndRotate & Layer.HorizontalFlipDrawFlag) != 0 &&
-                             (flipAndRotate & Layer.VerticalFlipDrawFlag) != 0 ) {
-                            rotation = (float) (Math.PI / 2);
+                    if ((flipAndRotate & Layer.DiagonallyFlipDrawFlag) != 0)
+                    {
+                        if ((flipAndRotate & Layer.HorizontalFlipDrawFlag) != 0 &&
+                             (flipAndRotate & Layer.VerticalFlipDrawFlag) != 0)
+                        {
+                            rotation = (float)(Math.PI / 2);
                             flipEffect ^= SpriteEffects.FlipVertically;
-                        } else if ( (flipAndRotate & Layer.HorizontalFlipDrawFlag) != 0 ) {
-                            rotation = (float) -(Math.PI / 2);
+                        }
+                        else if ((flipAndRotate & Layer.HorizontalFlipDrawFlag) != 0)
+                        {
+                            rotation = (float)-(Math.PI / 2);
                             flipEffect ^= SpriteEffects.FlipVertically;
-                        } else if ( (flipAndRotate & Layer.VerticalFlipDrawFlag) != 0 ) {
-                            rotation = (float) (Math.PI / 2);
+                        }
+                        else if ((flipAndRotate & Layer.VerticalFlipDrawFlag) != 0)
+                        {
+                            rotation = (float)(Math.PI / 2);
                             flipEffect ^= SpriteEffects.FlipHorizontally;
-                        } else {
-                            rotation = -(float) (Math.PI / 2);
+                        }
+                        else
+                        {
+                            rotation = -(float)(Math.PI / 2);
                             flipEffect ^= SpriteEffects.FlipHorizontally;
                         }
                     }
@@ -516,7 +630,7 @@ namespace Squared.Tiled {
                     {
                         info = _TileInfoCache[index];
                         batch.Draw(info.Texture, destPos - viewPos, info.Rectangle,
-                                   Color.White * this.Opacity, rotation, new Vector2(tileWidth / 2f, tileHeight / 2f), 
+                                   Color.White * this.Opacity, rotation, new Vector2(tileWidth / 2f, tileHeight / 2f),
                                    1f, flipEffect, 0);
                     }
 
@@ -553,7 +667,7 @@ namespace Squared.Tiled {
                 result.X = int.Parse(reader.GetAttribute("x"));
             if (reader.GetAttribute("y") != null)
                 result.Y = int.Parse(reader.GetAttribute("y"));
-            if(reader.GetAttribute("opacity") != null)
+            if (reader.GetAttribute("opacity") != null)
                 result.Opacity = float.Parse(reader.GetAttribute("opacity"), NumberStyles.Any, ci);
 
             while (!reader.EOF)
@@ -575,12 +689,14 @@ namespace Squared.Tiled {
                                         {
                                             result.Objects.Add(objects.Name, objects);
                                         }
-                                        else {
+                                        else
+                                        {
                                             int count = result.Objects.Keys.Count((item) => item.Equals(objects.Name));
                                             result.Objects.Add(string.Format("{0}{1}", objects.Name, count), objects);
                                         }
                                     }
-                                } break;
+                                }
+                                break;
                             case "properties":
                                 {
                                     using (var st = reader.ReadSubtree())
@@ -606,8 +722,9 @@ namespace Squared.Tiled {
                                             st.Read();
                                         }
                                     }
-                                } break;
-                            }
+                                }
+                                break;
+                        }
 
                         break;
                     case XmlNodeType.EndElement:
@@ -620,13 +737,16 @@ namespace Squared.Tiled {
             return result;
         }
 
-        public void Draw(Map result, SpriteBatch batch, Rectangle rectangle, Vector2 viewportPosition)
+        public void Draw(Map result, SpriteBatch batch, Rectangle rectangle, Vector2 viewportPosition, int tilewidth, int tileheight)
         {
             foreach (var objects in Objects.Values)
             {
                 if (objects.Texture != null)
                 {
-                    objects.Draw(batch, rectangle, new Vector2(this.X * result.TileWidth, this.Y * result.TileHeight), viewportPosition, this.Opacity);
+                    if (result.Orientation == "isometric")
+                        objects.DrawIso(batch, rectangle, new Vector2(this.X * result.TileWidth, this.Y * result.TileHeight), viewportPosition, this.Opacity, tilewidth, tileheight);
+                    else
+                        objects.Draw(batch, rectangle, new Vector2(this.X * result.TileWidth, this.Y * result.TileHeight), viewportPosition, this.Opacity);
                 }
             }
         }
@@ -636,7 +756,7 @@ namespace Squared.Tiled {
     {
         public SortedList<string, string> Properties = new SortedList<string, string>();
 
-        public string Name, Image, Points;
+        public string Name, Image, Points, Type;
         public int Width, Height, X, Y;
 
         public List<Vector2> PointsList;
@@ -663,21 +783,23 @@ namespace Squared.Tiled {
             var result = new Object();
 
             result.Name = reader.GetAttribute("name");
-            
-            result.X = (int)Convert.ToDouble (reader.GetAttribute("x"));
-            result.Y = (int)Convert.ToDouble (reader.GetAttribute("y"));
+
+            result.Type = reader.GetAttribute("type");
+
+            result.X = (int)Convert.ToDouble(reader.GetAttribute("x"));
+            result.Y = (int)Convert.ToDouble(reader.GetAttribute("y"));
 
             /*
              * Height and width are optional on objects
              */
             int width;
-            if ( int.TryParse(reader.GetAttribute("width"), out width) ) 
+            if (int.TryParse(reader.GetAttribute("width"), out width))
             {
                 result.Width = width;
             }
 
             int height;
-            if ( int.TryParse(reader.GetAttribute("height"), out height) ) 
+            if (int.TryParse(reader.GetAttribute("height"), out height))
             {
                 result.Height = height;
             }
@@ -713,13 +835,13 @@ namespace Squared.Tiled {
                                 }
                             }
                         }
-                        if(reader.Name=="polygon" || reader.Name == "polyline")
+                        if (reader.Name == "polygon" || reader.Name == "polyline")
                         {
                             result.Points = reader.GetAttribute("points");
                             string[] points = new string[10];
                             points = result.Points.Split(' ');
                             List<Vector2> test1 = new List<Vector2>();
-                            foreach(string s in points)
+                            foreach (string s in points)
                             {
                                 string[] p = new string[2];
                                 p = s.Split(',');
@@ -743,6 +865,18 @@ namespace Squared.Tiled {
             }
 
             return result;
+        }
+
+        public void DrawIso(SpriteBatch batch, Rectangle rectangle, Vector2 offset, Vector2 viewportPosition, float opacity, int tilewidth, int tileheight)
+        {
+            Vector2 destPos = new Vector2((int)this.X, (int)this.Y);
+            destPos -= viewportPosition;
+            destPos = Isometric.TwoDToIso(new Vector2((int)destPos.X, (int)destPos.Y));
+            destPos.X += (int)(rectangle.Width) / 2;
+            destPos.Y += (int)(rectangle.Height) / 2;
+
+            if (destPos.X > 0 && destPos.X < (rectangle.Width - tilewidth) && destPos.Y > 0 && destPos.Y < (rectangle.Height - tileheight))
+                batch.Draw(_Texture, new Rectangle((int)destPos.X, (int)destPos.Y, this.Width, this.Height), new Rectangle(0, 0, _Texture.Width, _Texture.Height), Color.White * opacity);
         }
 
         public void Draw(SpriteBatch batch, Rectangle rectangle, Vector2 offset, Vector2 viewportPosition, float opacity)
@@ -776,97 +910,107 @@ namespace Squared.Tiled {
         public int Width, Height;
         public int TileWidth, TileHeight;
 
-        public static Map Load (string filename, ContentManager content) {
+        public string Orientation, RenderOrder;
+
+        public static Map Load(string filename, ContentManager content)
+        {
             var result = new Map();
-                XmlReaderSettings settings = new XmlReaderSettings();
-                settings.ProhibitDtd = false;
+            XmlReaderSettings settings = new XmlReaderSettings();
+            settings.ProhibitDtd = false;
 
-                using (var stream = System.IO.File.OpenText(filename))
-                using (var reader = XmlReader.Create(stream, settings))
-                    while (reader.Read())
+            using (var stream = System.IO.File.OpenText(filename))
+            using (var reader = XmlReader.Create(stream, settings))
+                while (reader.Read())
+                {
+                    var name = reader.Name;
+
+                    switch (reader.NodeType)
                     {
-                        var name = reader.Name;
-
-                        switch (reader.NodeType)
-                        {
-                            case XmlNodeType.DocumentType:
-                                if (name != "map")
-                                    throw new Exception("Invalid map format");
-                                break;
-                            case XmlNodeType.Element:
-                                switch (name)
-                                {
-                                    case "map":
+                        case XmlNodeType.DocumentType:
+                            if (name != "map")
+                                throw new Exception("Invalid map format");
+                            break;
+                        case XmlNodeType.Element:
+                            switch (name)
+                            {
+                                case "map":
+                                    {
+                                        result.Width = int.Parse(reader.GetAttribute("width"));
+                                        result.Height = int.Parse(reader.GetAttribute("height"));
+                                        result.TileWidth = int.Parse(reader.GetAttribute("tilewidth"));
+                                        result.TileHeight = int.Parse(reader.GetAttribute("tileheight"));
+                                        result.Orientation = reader.GetAttribute("orientation");
+                                        result.RenderOrder = reader.GetAttribute("renderorder");
+                                    }
+                                    break;
+                                case "tileset":
+                                    {
+                                        using (var st = reader.ReadSubtree())
                                         {
-                                            result.Width = int.Parse(reader.GetAttribute("width"));
-                                            result.Height = int.Parse(reader.GetAttribute("height"));
-                                            result.TileWidth = int.Parse(reader.GetAttribute("tilewidth"));
-                                            result.TileHeight = int.Parse(reader.GetAttribute("tileheight"));
-                                        } break;
-                                    case "tileset":
+                                            st.Read();
+                                            var tileset = Tileset.Load(st);
+                                            result.Tilesets.Add(tileset.Name, tileset);
+                                        }
+                                    }
+                                    break;
+                                case "layer":
+                                    {
+                                        using (var st = reader.ReadSubtree())
                                         {
-                                            using (var st = reader.ReadSubtree())
+                                            st.Read();
+                                            var layer = Layer.Load(st);
+                                            if (null != layer)
                                             {
-                                                st.Read();
-                                                var tileset = Tileset.Load(st);
-                                                result.Tilesets.Add(tileset.Name, tileset);
+                                                result.Layers.Add(layer.Name, layer);
                                             }
-                                        } break;
-                                    case "layer":
+                                        }
+                                    }
+                                    break;
+                                case "objectgroup":
+                                    {
+                                        using (var st = reader.ReadSubtree())
                                         {
-                                            using (var st = reader.ReadSubtree())
+                                            st.Read();
+                                            var objectgroup = ObjectGroup.Load(st);
+                                            result.ObjectGroups.Add(objectgroup.Name, objectgroup);
+                                        }
+                                    }
+                                    break;
+                                case "properties":
+                                    {
+                                        using (var st = reader.ReadSubtree())
+                                        {
+                                            while (!st.EOF)
                                             {
-                                                st.Read();
-                                                var layer = Layer.Load(st);
-                                                if (null != layer)
+                                                switch (st.NodeType)
                                                 {
-                                                    result.Layers.Add(layer.Name, layer);
-                                                }
-                                            }
-                                        } break;
-                                    case "objectgroup":
-                                        {
-                                            using (var st = reader.ReadSubtree())
-                                            {
-                                                st.Read();
-                                                var objectgroup = ObjectGroup.Load(st);
-                                                result.ObjectGroups.Add(objectgroup.Name, objectgroup);
-                                            }
-                                        } break;
-                                    case "properties":
-                                        {
-                                            using (var st = reader.ReadSubtree())
-                                            {
-                                                while (!st.EOF)
-                                                {
-                                                    switch (st.NodeType)
-                                                    {
-                                                        case XmlNodeType.Element:
-                                                            if (st.Name == "property")
+                                                    case XmlNodeType.Element:
+                                                        if (st.Name == "property")
+                                                        {
+                                                            if (st.GetAttribute("name") != null)
                                                             {
-                                                                if (st.GetAttribute("name") != null)
-                                                                {
-                                                                    result.Properties.Add(st.GetAttribute("name"), st.GetAttribute("value"));
-                                                                }
+                                                                result.Properties.Add(st.GetAttribute("name"), st.GetAttribute("value"));
                                                             }
+                                                        }
 
-                                                            break;
-                                                        case XmlNodeType.EndElement:
-                                                            break;
-                                                    }
-
-                                                    st.Read();
+                                                        break;
+                                                    case XmlNodeType.EndElement:
+                                                        break;
                                                 }
+
+                                                st.Read();
                                             }
-                                        } break;
-                                }
-                                break;
-                            case XmlNodeType.EndElement:
-                                break;
-                            case XmlNodeType.Whitespace:
-                                break;
-                        }
+                                        }
+                                    }
+                                    break;
+                            }
+                            break;
+                        case XmlNodeType.EndElement:
+                            break;
+                        case XmlNodeType.Whitespace:
+                            break;
                     }
+                }
 
 
             foreach (var tileset in result.Tilesets.Values)
@@ -899,14 +1043,14 @@ namespace Squared.Tiled {
         }
 
         //new method to generate the list of all layers and objectgroups to draw
-        private SortedList<string,bool> CombinedList()
+        private SortedList<string, bool> CombinedList()
         {
             SortedList<string, bool> temp = new SortedList<string, bool>();
 
             //bool of true denotes a layer
             foreach (Layer layers in Layers.Values)
             {
-               temp.Add(layers.Name,true);
+                temp.Add(layers.Name, true);
             }
 
             //bool of false denotes an object group
@@ -918,7 +1062,8 @@ namespace Squared.Tiled {
             return temp;
         }
 
-        public void Draw (SpriteBatch batch, Rectangle rectangle, Vector2 viewportPosition) {
+        public void Draw(SpriteBatch batch, Rectangle rectangle, Vector2 viewportPosition)
+        {
 
             //check if combined list is created if not create it.
             if (Combined == null)
@@ -930,10 +1075,15 @@ namespace Squared.Tiled {
             foreach (var layer in Combined)
             {
                 if (layer.Value == true)
-                    Layers[layer.Key].Draw(batch, Tilesets.Values, rectangle, viewportPosition, TileWidth, TileHeight);
-                else
-                    ObjectGroups[layer.Key].Draw(this, batch, rectangle, viewportPosition);
+                {
+                    if (this.Orientation == "isometric")
+                        Layers[layer.Key].DrawIso(batch, Tilesets.Values, rectangle, viewportPosition, TileWidth, TileHeight);
+                    else
+                        Layers[layer.Key].Draw(batch, Tilesets.Values, rectangle, viewportPosition, TileWidth, TileHeight);
                 }
+                else
+                    ObjectGroups[layer.Key].Draw(this, batch, rectangle, viewportPosition, TileWidth, TileHeight);
             }
         }
     }
+}
