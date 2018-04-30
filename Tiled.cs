@@ -52,8 +52,10 @@ Copyright (C) 2009 Kevin Gadd
  * - Object layers and tile layers are drawn together according to alphabetical order
  * - Added methods to get the texture of a specific tile
  * - Added method to get the color data from a specific texture
+ * - Added DrawIso method for objects and layers for when the map is isometric
  * 
- * TODO: Isometric map drawing, and moving objects in an isometric map. (this code is close to completion)
+ * TODO: Improve Isometric map drawing, and moving objects in an isometric map. (current code is proof of concept)
+ *       Ideally want to have a single Draw method that copes with isometric.
  */
 
 using System;
