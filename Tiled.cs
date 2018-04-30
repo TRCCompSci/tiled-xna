@@ -45,6 +45,15 @@ Copyright (C) 2009 Kevin Gadd
  * - CF-compatible System.IO.Compression library available via GitHub release. See releases at https://github.com/zachmu/tiled-xna
  * 
  * Zach Musgrave zach.musgrave@gmail.com http://gamedev.sleptlate.org
+ */ 
+ /* Modifications by Wayne Jones - 2017 - 2018
+ * - Added polyline and polygon support, both can be read as objects
+ * - X & Y coordinates for objects can be decimal, converts them to int
+ * - Object layers and tile layers are drawn together according to alphabetical order
+ * - Added methods to get the texture of a specific tile
+ * - Added method to get the color data from a specific texture
+ * 
+ * TODO: Isometric map drawing, and moving objects in an isometric map. (this code is close to completion)
  */
 
 using System;
@@ -627,8 +636,10 @@ namespace Squared.Tiled {
     {
         public SortedList<string, string> Properties = new SortedList<string, string>();
 
-        public string Name, Image;
+        public string Name, Image, Points;
         public int Width, Height, X, Y;
+
+        public List<Vector2> PointsList;
 
         protected Texture2D _Texture;
         protected int _TexWidth, _TexHeight;
@@ -652,8 +663,9 @@ namespace Squared.Tiled {
             var result = new Object();
 
             result.Name = reader.GetAttribute("name");
-            result.X = int.Parse(reader.GetAttribute("x"));
-            result.Y = int.Parse(reader.GetAttribute("y"));
+            
+            result.X = (int)Convert.ToDouble (reader.GetAttribute("x"));
+            result.Y = (int)Convert.ToDouble (reader.GetAttribute("y"));
 
             /*
              * Height and width are optional on objects
@@ -700,6 +712,22 @@ namespace Squared.Tiled {
                                     st.Read();
                                 }
                             }
+                        }
+                        if(reader.Name=="polygon" || reader.Name == "polyline")
+                        {
+                            result.Points = reader.GetAttribute("points");
+                            string[] points = new string[10];
+                            points = result.Points.Split(' ');
+                            List<Vector2> test1 = new List<Vector2>();
+                            foreach(string s in points)
+                            {
+                                string[] p = new string[2];
+                                p = s.Split(',');
+                                int x = (int)Convert.ToDouble(p[0]);
+                                int y = (int)Convert.ToDouble(p[1]);
+                                test1.Add(new Vector2(x, y));
+                            }
+                            result.PointsList = test1;
                         }
                         if (reader.Name == "image")
                         {
