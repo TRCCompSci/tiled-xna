@@ -54,6 +54,7 @@ Copyright (C) 2009 Kevin Gadd
  * - Added method to get the color data from a specific texture
  * - Added DrawIso method for objects and layers for when the map is isometric
  * - Added code to support zlib compressed layers
+ * - Added support for csv encoded layers
  * 
  * TODO: Improve Isometric map drawing, and moving objects in an isometric map. (current code is proof of concept)
  *       Ideally want to have a single Draw method that copes with isometric.
@@ -286,6 +287,25 @@ namespace Squared.Tiled
                     case XmlNodeType.Element:
                         switch (name)
                         {
+                                                                        case "csv":
+                                                string csvdata = "";
+                                                if (reader.Value!=null)
+                                                {
+                                                    csvdata = (string)reader.ReadInnerXml();
+                                                    int total = result.Tiles.Length;
+                                                    var dump = csvdata.Split(',');
+
+                                                    for (int i = 0; i < total; i++)
+                                                    {
+                                                        if (dump[i]!=null)
+                                                            result.Tiles[i] = int.Parse(dump[i]);
+                                                        else
+                                                            result.Tiles[i] = 0;
+                                                    }
+                                                }
+                                                else
+                                                    Console.WriteLine("no value");
+                                                break;
                             case "data":
                                 {
                                     if (reader.GetAttribute("encoding") != null)
