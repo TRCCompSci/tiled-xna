@@ -287,25 +287,25 @@ namespace Squared.Tiled
                     case XmlNodeType.Element:
                         switch (name)
                         {
-                                                                        case "csv":
-                                                string csvdata = "";
-                                                if (reader.Value!=null)
-                                                {
-                                                    csvdata = (string)reader.ReadInnerXml();
-                                                    int total = result.Tiles.Length;
-                                                    var dump = csvdata.Split(',');
+                            case "csv":
+                                string csvdata = "";
+                                if (reader.Value!=null)
+                                {
+                                     csvdata = (string)reader.ReadInnerXml();
+                                     int total = result.Tiles.Length;
+                                     var dump = csvdata.Split(',');
 
-                                                    for (int i = 0; i < total; i++)
-                                                    {
-                                                        if (dump[i]!=null)
-                                                            result.Tiles[i] = int.Parse(dump[i]);
-                                                        else
-                                                            result.Tiles[i] = 0;
-                                                    }
-                                                }
-                                                else
-                                                    Console.WriteLine("no value");
-                                                break;
+                                     for (int i = 0; i < total; i++)
+                                     {
+                                           if (dump[i]!=null)
+                                                result.Tiles[i] = int.Parse(dump[i]);
+                                           else
+                                                result.Tiles[i] = 0;
+                                      }
+                                }
+                                else
+                                      Console.WriteLine("no value");
+                                break;
                             case "data":
                                 {
                                     if (reader.GetAttribute("encoding") != null)
