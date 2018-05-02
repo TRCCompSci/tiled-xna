@@ -364,7 +364,12 @@ namespace Squared.Tiled
                                                         {
                                                             if (i < result.Tiles.Length)
                                                             {
-                                                                result.Tiles[i] = int.Parse(st.GetAttribute("gid"));
+                                                                if (st.AttributeCount > 0)
+                                                                {
+                                                                    result.Tiles[i] = int.Parse(st.GetAttribute("gid"));
+                                                                }
+                                                                else result.Tiles[i] = 0;
+
                                                                 i++;
                                                             }
                                                         }
