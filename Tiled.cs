@@ -53,6 +53,7 @@ Copyright (C) 2009 Kevin Gadd
  * - Added methods to get the texture of a specific tile
  * - Added method to get the color data from a specific texture
  * - Added DrawIso method for objects and layers for when the map is isometric
+ * - Added code to support zlib compressed layers
  * 
  * TODO: Improve Isometric map drawing, and moving objects in an isometric map. (current code is proof of concept)
  *       Ideally want to have a single Draw method that copes with isometric.
@@ -302,6 +303,14 @@ namespace Squared.Tiled
                                                     Stream stream = new MemoryStream(buffer, false);
                                                     if (compressor == "gzip")
                                                         stream = new GZipStream(stream, CompressionMode.Decompress, false);
+                                                    else if (compressor == "zlib")
+                                                    {                                                       
+                                                        var length = buffer.Length - 6;
+                                                        byte[] data = new byte[length];
+                                                        Array.Copy(buffer, 2, data, 0, length);
+                                                        var compressedstream = new MemoryStream(data, false);
+                                                        stream = new DeflateStream(compressedstream, CompressionMode.Decompress);
+                                                    }
 
                                                     using (stream)
                                                     using (var br = new BinaryReader(stream))
