@@ -56,8 +56,7 @@ Copyright (C) 2009 Kevin Gadd
  * - Added code to support zlib compressed layers
  * - Added support for csv encoded layers
  * 
- * TODO: Improve Isometric map drawing, and moving objects in an isometric map. (current code is proof of concept)
- *       Ideally want to have a single Draw method that copes with isometric.
+ * TODO: Ideally want to have a single Draw method that copes with isometric and normal maps, at the moment it uses DrawISO and Draw.
  */
 
 using System;
@@ -287,25 +286,6 @@ namespace Squared.Tiled
                     case XmlNodeType.Element:
                         switch (name)
                         {
-                            case "csv":
-                                string csvdata = "";
-                                if (reader.Value!=null)
-                                {
-                                     csvdata = (string)reader.ReadInnerXml();
-                                     int total = result.Tiles.Length;
-                                     var dump = csvdata.Split(',');
-
-                                     for (int i = 0; i < total; i++)
-                                     {
-                                           if (dump[i]!=null)
-                                                result.Tiles[i] = int.Parse(dump[i]);
-                                           else
-                                                result.Tiles[i] = 0;
-                                      }
-                                }
-                                else
-                                      Console.WriteLine("no value");
-                                break;
                             case "data":
                                 {
                                     if (reader.GetAttribute("encoding") != null)
@@ -314,13 +294,58 @@ namespace Squared.Tiled
                                         var compressor = reader.GetAttribute("compression");
                                         switch (encoding)
                                         {
+                                            case "csv":
+                                                string csvdata = "";
+                                                if (reader.Value!=null)
+                                                {
+                                                    csvdata = (string)reader.ReadInnerXml();
+                                                    int total = result.Tiles.Length;
+                                                    var dump = csvdata.Split(',');
+                                                    uint tileData;
+
+                                                    for (int i = 0; i < total; i++)
+                                                    {
+                                                        if (dump[i] != null)
+                                                        {
+                                                            tileData = Convert.ToUInt32(int.Parse(dump[i]));
+                                                            byte flipAndRotateFlags = 0;
+                                                            if ((tileData & FlippedHorizontallyFlag) != 0)
+                                                            {
+                                                                flipAndRotateFlags |= HorizontalFlipDrawFlag;
+                                                            }
+                                                            if ((tileData & FlippedVerticallyFlag) != 0)
+                                                            {
+                                                                flipAndRotateFlags |= VerticalFlipDrawFlag;
+                                                            }
+                                                            if ((tileData & FlippedDiagonallyFlag) != 0)
+                                                            {
+                                                                flipAndRotateFlags |= DiagonallyFlipDrawFlag;
+                                                            }
+                                                            result.FlipAndRotate[i] = flipAndRotateFlags;
+
+                                                            // Clear the flip bits before storing the tile data
+                                                            tileData &= ~(FlippedHorizontallyFlag |
+                                                                          FlippedVerticallyFlag |
+                                                                          FlippedDiagonallyFlag);
+                                                            result.Tiles[i] = (int)tileData;
+                                                        }
+                                                        else
+                                                            result.Tiles[i] = 0;
+                                                    }
+
+                                                    
+                                                }
+                                                else
+                                                    Console.WriteLine("no value");
+                                                break;
                                             case "base64":
                                                 {
                                                     int dataSize = (result.Width * result.Height * 4) + 1024;
                                                     var buffer = new byte[dataSize];
                                                     reader.ReadElementContentAsBase64(buffer, 0, dataSize);
 
-                                                    Stream stream = new MemoryStream(buffer, false);
+                                                    Stream stream = new MemoryStream(buffer, true);
+
                                                     if (compressor == "gzip")
                                                         stream = new GZipStream(stream, CompressionMode.Decompress, false);
                                                     else if (compressor == "zlib")
@@ -337,8 +362,7 @@ namespace Squared.Tiled
                                                     {
                                                         for (int i = 0; i < result.Tiles.Length; i++)
                                                         {
-                                                            uint tileData = br.ReadUInt32();
-
+                                                            uint tileData = (uint)br.ReadUInt32();
                                                             // The data contain flip information as well as the tileset index
                                                             byte flipAndRotateFlags = 0;
                                                             if ((tileData & FlippedHorizontallyFlag) != 0)
@@ -382,6 +406,7 @@ namespace Squared.Tiled
                                                     case XmlNodeType.Element:
                                                         if (st.Name == "tile")
                                                         {
+                                                            
                                                             if (i < result.Tiles.Length)
                                                             {
                                                                 if (st.AttributeCount > 0)
@@ -521,53 +546,80 @@ namespace Squared.Tiled
 
         public void DrawIso(SpriteBatch batch, IList<Tileset> tilesets, Rectangle rectangle, Vector2 viewportPosition, int tileWidth, int tileHeight)
         {
-            int i = 0;
-            Vector2 destPos = new Vector2(0, 0);
-
-            Vector2 centTile = new Vector2((int)viewportPosition.X / tileHeight, (int)viewportPosition.Y / tileHeight);
-
-            Console.WriteLine(centTile + " " + viewportPosition);
-
             TileInfo info = new TileInfo();
             if (_TileInfoCache == null)
                 BuildTileInfoCache(tilesets);
 
-            for (int y = (int)centTile.Y - (Height / 2); y <= (int)centTile.Y + (Height / 2); y++)
+            for (int y = 0; y < this.Height; y++)
             {
-                for (int x = (int)centTile.X - (Width / 2); x <= (int)centTile.X + (Width / 2); x++)
+                for (int x = 0; x < this.Width; x++)
                 {
+                    Vector2 destPos = new Vector2((int)x*(tileWidth/2), (int)y*(tileHeight));
 
-                    destPos.X = (x - centTile.X) * tileHeight;
-                    destPos.Y = (y - centTile.Y) * tileHeight;
-                    destPos = Isometric.TwoDToIso(destPos);
-                    destPos.X += (rectangle.Width) / 2;
-                    destPos.Y += (rectangle.Height) / 2;
+                    destPos.X += (int)((rectangle.Width)/2);
+                    destPos.Y += (int)((rectangle.Height)/4);
 
-                    if (destPos.X > (0 - tileWidth) && destPos.X < (rectangle.Width + tileWidth) && destPos.Y > (0 - tileWidth) && destPos.Y < (rectangle.Height + tileHeight))
+                    //stop gap to center viewport on screen.
+                    //for some reason the player is always off center
+                    //dividing the height and width seem to work with different screen sizes
+                    Vector2 viewoffset = new Vector2((rectangle.Height / 12), (rectangle.Width / 7));
+                    destPos -= viewportPosition + viewoffset;
+
+                    destPos = Isometric.TwoDToIso(new Vector2((int)destPos.X, (int)destPos.Y));
+
+                    if (destPos.X > (0-(tileWidth*2)) && destPos.X < (rectangle.Width + (tileWidth*2)) && destPos.Y > (0-(tileHeight*2)) && destPos.Y < (rectangle.Height + (tileHeight*2)))
                     {
+                        int i = ((int)y * Width) + (int)x;
+                        
+                        byte flipAndRotate = FlipAndRotate[i];
+                        SpriteEffects flipEffect = SpriteEffects.None;
+                        float rotation = 0f;
 
-                        Vector2 testtile = new Vector2(x, y);
-
-                        if (testtile.X >= 0 && testtile.X < Width && testtile.Y >= 0 && testtile.Y < Height)
+                        if ((flipAndRotate & Layer.HorizontalFlipDrawFlag) != 0)
                         {
-
-                            i = ((int)testtile.Y * Width) + (int)testtile.X;
-
-                            int index = Tiles[i] - 1;
-
-                            if ((index >= 0) && (index < _TileInfoCache.Length))
+                            flipEffect |= SpriteEffects.FlipHorizontally;
+                        }
+                        if ((flipAndRotate & Layer.VerticalFlipDrawFlag) != 0)
+                        {
+                            flipEffect |= SpriteEffects.FlipVertically;
+                        }
+                        if ((flipAndRotate & Layer.DiagonallyFlipDrawFlag) != 0)
+                        {
+                            if ((flipAndRotate & Layer.HorizontalFlipDrawFlag) != 0 &&
+                                 (flipAndRotate & Layer.VerticalFlipDrawFlag) != 0)
                             {
-                                info = _TileInfoCache[index];
-
-                                //batch.Draw(info.Texture, new Rectangle(ox, oy, this.Width, this.Height), info.Rectangle, Color.White * this.Opacity,0f);
-                                batch.Draw(info.Texture, destPos, info.Rectangle,
-                                           Color.White * this.Opacity, 0f, new Vector2(tileWidth / 2f, tileHeight / 2f),
-                                           1f, 0f, 0);
+                                rotation = (float)(Math.PI / 2);
+                                flipEffect ^= SpriteEffects.FlipVertically;
                             }
+                            else if ((flipAndRotate & Layer.HorizontalFlipDrawFlag) != 0)
+                            {
+                                rotation = (float)-(Math.PI / 2);
+                                flipEffect ^= SpriteEffects.FlipVertically;
+                            }
+                            else if ((flipAndRotate & Layer.VerticalFlipDrawFlag) != 0)
+                            {
+                                rotation = (float)(Math.PI / 2);
+                                flipEffect ^= SpriteEffects.FlipHorizontally;
+                            }
+                            else
+                            {
+                                rotation = -(float)(Math.PI / 2);
+                                flipEffect ^= SpriteEffects.FlipHorizontally;
+                            }
+                        }
+
+                        int index = Tiles[i] - 1;
+
+                        if ((index >= 0))
+                        {
+                            info = _TileInfoCache[index];
+                            batch.Draw(info.Texture, destPos, info.Rectangle, Color.White * this.Opacity, rotation, 
+                                new Vector2(tileWidth / 2f, tileHeight / 2f), 1f, flipEffect, 0);
                         }
                     }
                 }
             }
+            
         }
 
         public void Draw(SpriteBatch batch, IList<Tileset> tilesets, Rectangle rectangle, Vector2 viewportPosition, int tileWidth, int tileHeight)
@@ -906,10 +958,16 @@ namespace Squared.Tiled
         public void DrawIso(SpriteBatch batch, Rectangle rectangle, Vector2 offset, Vector2 viewportPosition, float opacity, int tilewidth, int tileheight)
         {
             Vector2 destPos = new Vector2((int)this.X, (int)this.Y);
-            destPos -= viewportPosition;
+
+            destPos.X += (int)(rectangle.Width/2);
+            destPos.Y += (int)(rectangle.Height/4);
+
+            //stop gap to center viewport on screen.
+            //for some reason the player is always off center
+            //dividing the height and width seem to work with different screen sizes
+            Vector2 viewoffset = new Vector2((rectangle.Height / 12), (rectangle.Width / 7));
+            destPos -= viewportPosition + viewoffset;
             destPos = Isometric.TwoDToIso(new Vector2((int)destPos.X, (int)destPos.Y));
-            destPos.X += (int)(rectangle.Width) / 2;
-            destPos.Y += (int)(rectangle.Height) / 2;
 
             if (destPos.X > 0 && destPos.X < (rectangle.Width - tilewidth) && destPos.Y > 0 && destPos.Y < (rectangle.Height - tileheight))
                 batch.Draw(_Texture, new Rectangle((int)destPos.X, (int)destPos.Y, this.Width, this.Height), new Rectangle(0, 0, _Texture.Width, _Texture.Height), Color.White * opacity);
