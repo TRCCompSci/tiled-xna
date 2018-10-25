@@ -847,6 +847,9 @@ namespace Squared.Tiled
         public string Name, Image, Points, Type;
         public int Width, Height, X, Y;
 
+        public float Rotation = 0;
+        public Vector2 Origin = Vector2.Zero;
+
         public List<Vector2> PointsList;
 
         protected Texture2D _Texture;
@@ -987,7 +990,8 @@ namespace Squared.Tiled
                 {
                     int x = (int)(this.X + offset.X - viewportPosition.X);
                     int y = (int)(this.Y + offset.Y - viewportPosition.Y);
-                    batch.Draw(_Texture, new Rectangle(x, y, this.Width, this.Height), new Rectangle(0, 0, _Texture.Width, _Texture.Height), Color.White * opacity);
+                    batch.Draw(_Texture, new Rectangle(x + (int)Origin.X, y + (int)Origin.Y, this.Width, this.Height), new Rectangle(0, 0, _Texture.Width, _Texture.Height), Color.White * opacity, Rotation, Origin, SpriteEffects.FlipHorizontally, 1f);
+                    //batch.Draw(_Texture, new Rectangle(x, y, this.Width, this.Height), new Rectangle(0, 0, _Texture.Width, _Texture.Height), Color.White * opacity);
                 }
         }
     }
