@@ -17,6 +17,7 @@ namespace TiledExampleGame
         Map map,map1,map2;
 
         Texture2D player;
+        Vector2 viewPort;
 
         public Game1()
         {
@@ -56,6 +57,8 @@ namespace TiledExampleGame
             map2.ObjectGroups["Objects"].Objects["Player"].Texture = player;
 
             map = map1;
+
+            viewPort = new Vector2(map.ObjectGroups["Objects"].Objects["Player"].X - (graphics.PreferredBackBufferWidth / 2), map.ObjectGroups["Objects"].Objects["Player"].Y - (graphics.PreferredBackBufferHeight / 2));
             // TODO: use this.Content to load your game content here
         }
 
@@ -75,8 +78,20 @@ namespace TiledExampleGame
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
+            
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
+
+            if (Keyboard.GetState().IsKeyDown(Keys.A))
+            {
+                map = map1;
+                viewPort = new Vector2(map.ObjectGroups["Objects"].Objects["Player"].X - (graphics.PreferredBackBufferWidth / 2), map.ObjectGroups["Objects"].Objects["Player"].Y - (graphics.PreferredBackBufferHeight / 2));
+            }
+
+            if (Keyboard.GetState().IsKeyDown(Keys.S))
+            {
+                map = map2;
+            }
 
             // TODO: Add your update logic here
 
@@ -91,7 +106,9 @@ namespace TiledExampleGame
         {
             GraphicsDevice.Clear(Color.White);
 
-            // TODO: Add your drawing code here
+            spriteBatch.Begin();
+            map.Draw(spriteBatch, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), viewPort);
+            spriteBatch.End();
 
             base.Draw(gameTime);
         }
