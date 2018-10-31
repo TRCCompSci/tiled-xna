@@ -14,8 +14,10 @@ namespace TiledExampleGame
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
+        //Map variables
         Map map,map1,map2;
 
+        //variables for player texture and position to focus map
         Texture2D player;
         Vector2 viewPort;
 
@@ -47,19 +49,21 @@ namespace TiledExampleGame
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
+            //Load maps
             map1 = Map.Load(Path.Combine(Content.RootDirectory, "SimpleRPG.tmx"), Content);
             map2 = Map.Load(Path.Combine(Content.RootDirectory, "SimpleRPGiso.tmx"), Content);
 
             player = Content.Load<Texture2D>("hero");
 
+            //Access objects in map
             map1.ObjectGroups["Objects"].Objects["Player"].Texture = player;
-
             map2.ObjectGroups["Objects"].Objects["Player"].Texture = player;
 
             map = map1;
 
+            //starting view port for starting map
             viewPort = new Vector2(map.ObjectGroups["Objects"].Objects["Player"].X - (graphics.PreferredBackBufferWidth / 2), map.ObjectGroups["Objects"].Objects["Player"].Y - (graphics.PreferredBackBufferHeight / 2));
-            // TODO: use this.Content to load your game content here
+
         }
 
         /// <summary>
@@ -85,15 +89,16 @@ namespace TiledExampleGame
             if (Keyboard.GetState().IsKeyDown(Keys.A))
             {
                 map = map1;
+                //Set view port for normal map, need to minus half the width and height
                 viewPort = new Vector2(map.ObjectGroups["Objects"].Objects["Player"].X - (graphics.PreferredBackBufferWidth / 2), map.ObjectGroups["Objects"].Objects["Player"].Y - (graphics.PreferredBackBufferHeight / 2));
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.S))
             {
                 map = map2;
+                //Set view port for isometric map, you just need provide x and y of player
+                viewPort = new Vector2(map.ObjectGroups["Objects"].Objects["Player"].X, map.ObjectGroups["Objects"].Objects["Player"].Y);
             }
-
-            // TODO: Add your update logic here
 
             base.Update(gameTime);
         }
@@ -106,6 +111,7 @@ namespace TiledExampleGame
         {
             GraphicsDevice.Clear(Color.White);
 
+            //Draw a map
             spriteBatch.Begin();
             map.Draw(spriteBatch, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), viewPort);
             spriteBatch.End();
