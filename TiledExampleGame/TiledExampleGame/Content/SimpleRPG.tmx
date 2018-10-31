@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" tiledversion="1.0.3" orientation="orthogonal" renderorder="left-down" width="50" height="30" tilewidth="16" tileheight="16" nextobjectid="11">
+ <tileset firstgid="1" name="dungeon" tilewidth="16" tileheight="16" tilecount="256" columns="16">
+  <image source="0x72_16x16DungeonTileset.v4.png" trans="000000" width="256" height="256"/>
+  <tile id="118">
+   <objectgroup draworder="index" name="TileCollision">
+    <object id="1" name="tile118" x="0.75" y="4.25" width="14.75" height="6.75"/>
+   </objectgroup>
+  </tile>
+ </tileset>
+ <layer name="dungeon" width="50" height="30">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC+3TuwkAIRBFUXuwlC3O9mVhQ0Fhxv1xDrzMYG5gKferCXuD844jMB25dDzbMfqnX+2I3K0jlw4dO/ypY3Xt2uwdAAAAMR3hmWJJcBcAAA==
+  </data>
+ </layer>
+ <layer name="Collision" width="50" height="30">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC+3WQQ4AEAwEwP7a9z2iDUtmEkfWHiqqzlsDK0H3HnrM0mNmfyd3ck5v9kg+71auHlm5emTlJr27P/yvAAAAXrYBlsa/UHAXAAA=
+  </data>
+ </layer>
+ <objectgroup color="#ffffff" name="Objects">
+  <object id="3" name="Player" type="Player" x="505" y="56" width="16" height="16"/>
+
+ </objectgroup>
+
+</map>

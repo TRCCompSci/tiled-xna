@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Squared.Tiled;
+using System.IO;
 
 namespace TiledExampleGame
 {
@@ -12,6 +13,10 @@ namespace TiledExampleGame
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+
+        Map map,map1,map2;
+
+        Texture2D player;
 
         public Game1()
         {
@@ -41,6 +46,16 @@ namespace TiledExampleGame
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
+            map1 = Map.Load(Path.Combine(Content.RootDirectory, "SimpleRPG.tmx"), Content);
+            map2 = Map.Load(Path.Combine(Content.RootDirectory, "SimpleRPGiso.tmx"), Content);
+
+            player = Content.Load<Texture2D>("hero");
+
+            map1.ObjectGroups["Objects"].Objects["Player"].Texture = player;
+
+            map2.ObjectGroups["Objects"].Objects["Player"].Texture = player;
+
+            map = map1;
             // TODO: use this.Content to load your game content here
         }
 
