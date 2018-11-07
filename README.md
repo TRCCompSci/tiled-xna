@@ -18,4 +18,6 @@ I have changed the Draw method of the map to draw the layers and objectgroups co
 
 I have added the code to read in polyline and polygon objects from the map. PointList will be available to access all of the coordinates.
 
+I have added the ability to rotate any non-isometric objects, you can set the Rotation of any object.
+
 The current code can now draw isometric maps with a RightDown tile render order, i could probably also support other options but this will be low priority.
