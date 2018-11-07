@@ -55,6 +55,7 @@ Copyright (C) 2009 Kevin Gadd
  * - Added DrawIso method for objects and layers for when the map is isometric
  * - Added code to support zlib compressed layers
  * - Added support for csv encoded layers
+ * - Added ability to rotate non-isometric objects
  * 
  * TODO: Ideally want to have a single Draw method that copes with isometric and normal maps, at the moment it uses DrawISO and Draw.
  */
