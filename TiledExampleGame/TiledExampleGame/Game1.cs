@@ -86,7 +86,7 @@ namespace TiledExampleGame
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            if (Keyboard.GetState().IsKeyDown(Keys.A))
+            if (Keyboard.GetState().IsKeyDown(Keys.Q))
             {
                 map = map1;
                 //Set view port for normal map, need to minus half the width and height
